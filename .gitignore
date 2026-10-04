@@ -1,6 +1,7 @@
 .idea/
 .claude/
 build/vendor/
+node_modules/
 .DS_Store
 # 下划线开头的目录不纳入版本管理（本地产物 _local/、发布产物 _release/ 等）
 _*/

@@ -1,4 +1,10 @@
-# 🗂️ Claude 数据查看器 v6.0
+# 🗂️ Claude 数据查看器 v6.0.1-local
+
+这是由 **OpenAI Codex 辅助二次修改**的版本，由 [liminous233](https://github.com/liminous233) 发起并发布，基于 [crownleo/ClaudeViewer](https://github.com/crownleo/ClaudeViewer) v6.0。原作者为 **crownleo**，保留原作者署名，并继续使用 **GPL-3.0** 许可证。该版本不是 ClaudeViewer 上游、Anthropic 或 OpenAI 官方发布。
+
+本轮改进包括 HTML 安全清洗、完整 Markdown 导出、PDF 导出选项，以及浏览器回归测试。详细改动与验证记录见[二次修改说明](MODIFICATIONS.md)和[实施记录](docs/LOCAL_IMPROVEMENTS.md)。
+
+**使用本二改版**：下载本仓库的 [`claude_viewer.html`](claude_viewer.html)（打开文件页后选择 Download raw file），然后用浏览器双击打开。无需安装任何依赖。
 
 **简体中文** · [English](README.en.md)
 
@@ -6,12 +12,12 @@
 
 一个单文件 HTML 工具，用于查看和分析从 Claude.ai 导出的个人数据。双击即用，无需服务器、无需联网、无需账号。**v5.2 起所有依赖库已内联进单文件，完全离线可用、零外部请求。**
 
-🔗 **在线体验**：<https://claudeviewersite.crownleo.cn/>
-📥 **下载单文件**：[最新 Release](https://github.com/crownleo/ClaudeViewer/releases/latest)　·　🗺️ [路线图](docs/ROADMAP.md)
+🔗 **上游在线体验（不含本仓库二改）**：<https://claudeviewersite.crownleo.cn/>
+📥 **上游 Release**：[原作者版本](https://github.com/crownleo/ClaudeViewer/releases/latest)　·　🗺️ [上游路线图](docs/ROADMAP.md)
 
 <p align="center"><img src="assets/main.png" alt="Claude 数据查看器" width="640"></p>
 
-> 在线体验版同样在你的浏览器本地运行、不上传任何数据；如需长期使用，建议[下载单文件](https://github.com/crownleo/ClaudeViewer/releases/latest)离线保存。
+> 上游在线体验同样在浏览器本地处理数据；如需使用本仓库改动，请下载本仓库的 HTML，而非上游 Release。
 
 ---
 
@@ -141,8 +147,8 @@ manifest 是判断**分片是否齐全**的唯一依据——对话量大时 `co
 ### 导出
 | 功能 | 操作 | 输出 |
 |---|---|---|
-| 导出当前对话 Markdown | 详情页「↓ MD」 | `.md` 文件，含思考过程折叠块和附件 |
-| 导出当前对话 PDF | 详情页「↓ PDF」 | 新窗口打印 → 存为 PDF（含公式）|
+| 导出当前对话 Markdown | 详情页「↓ MD」 | 含完整思考、工具结果、附件提取文本；批量导出同样不截断 |
+| 导出当前对话 PDF | 详情页「↓ PDF」 | 默认含完整思考与公式，可选工具记录、附件正文 → 新窗口打印保存 |
 | 批量导出全部对话 | 对话列表「↓ 全部导出」 | `.zip`，每条对话一个 MD 文件 |
 | 导出记忆文件 | 记忆 Tab「↓ 导出」 | `.md` 文件 |
 | 导出整份档案 | 档案库「↓ 导出整套」 | `.zip`，原始字节逐字节保真（v6.0 新增） |
@@ -202,7 +208,7 @@ ClaudeViewer 渲染的是 Claude **写在正文中的 LaTeX 文本**：
 
 - **完全本地运行**：所有数据仅在浏览器内处理，不经过任何服务器
 - **零外部网络请求**：v5.2 起 marked.js、JSZip、KaTeX 及其字体全部内联进单文件，打开页面不向任何 CDN 或第三方发起请求，可完全离线使用
-- **CSP 强制隔离**（v6.0 新增）：页面头部声明 `default-src 'none'; connect-src 'none'`，由**浏览器强制**保证本页无法向任何服务器发送请求。这意味着即使将来不慎引入外部资源，或渲染层出现漏洞，你的对话内容也无法被传出去。副作用：对话正文里指向外部站点的 Markdown 图片将不再加载——这本就是一条跟踪与泄露渠道
+- **内容清洗与 CSP**：本地版通过内联 DOMPurify 清洗聊天、记忆和打印 HTML，清洗不可用时显示纯文本。CSP 限制资源加载和网络连接，打印页额外禁止脚本；CSP 不是内容清洗的替代品。外部 Markdown 图片不加载，普通外部链接仅在你主动点击时打开
 - **默认不持久化**：除非你主动选择「保存到本地」
 - **IndexedDB 缓存**：选择保存后数据存于此设备浏览器，仅本机可读，可随时清除
 - **localStorage 存储**：收藏列表、标签、深色模式、缓存偏好、全空对话收起偏好、当前档案 id（不含对话内容）
@@ -231,6 +237,7 @@ ClaudeViewer 渲染的是 Claude **写在正文中的 LaTeX 文本**：
 
 - 纯原生 HTML / CSS / JavaScript，无框架
 - [marked.js 9.1.6](https://marked.js.org/) — Markdown 渲染（已内联）
+- [DOMPurify 3.4.16](https://github.com/cure53/DOMPurify) — 不可信 HTML 清洗（已内联，保留上游许可证声明）
 - [JSZip 3.10.1](https://stuk.github.io/jszip/) — ZIP 解析与生成（已内联）
 - [KaTeX 0.16.9](https://katex.org/) — LaTeX 公式渲染（含字体，已内联）
 - 依赖内联：三方库与 KaTeX 字体通过 [`build/build.py`](build/build.py) 内联进单文件，零 CDN、完全离线；升级依赖时重跑脚本即可
@@ -361,6 +368,13 @@ v5.6 及更早版本会把这类空消息**静默过滤掉**，于是「Claude �
 ---
 
 ## 📋 版本历史
+
+**v6.0.1-local** *(2026-10-04，本地改进)*
+
+- 统一安全 Markdown 渲染，处理聊天、记忆、PDF 路径；打印页禁止脚本并修正思考摘要转义。
+- 单篇和批量 Markdown 不再截断工具结果与附件提取文本；PDF 保留完整思考，可选工具记录和附件正文。
+- 修正打印窗口加载监听时序，展开折叠正文，等待字体加载后调用打印。
+- 添加网页核心回归测试，运行方法见 [tests/README.md](tests/README.md)。原始数据没有的内容无法恢复；阅读导出不替代原始文件备份。
 
 **v6.0** *(2026-09-08)*
 

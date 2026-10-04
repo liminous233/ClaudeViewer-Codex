@@ -1,4 +1,10 @@
-# 🗂️ Claude Data Viewer v6.0
+# 🗂️ Claude Data Viewer v6.0.1-local
+
+This derivative was **modified with assistance from OpenAI Codex**, initiated and published by [liminous233](https://github.com/liminous233), based on [crownleo/ClaudeViewer](https://github.com/crownleo/ClaudeViewer) v6.0. The original author is **crownleo**. Original attribution and the **GPL-3.0** license are retained. This is not an official release from the upstream project, Anthropic, or OpenAI.
+
+Changes cover HTML sanitization, complete Markdown exports, PDF export options and browser regression tests. See [modification notes](MODIFICATIONS.md) and the [implementation record](docs/LOCAL_IMPROVEMENTS.md).
+
+**Use this derivative**: download this repository's [`claude_viewer.html`](claude_viewer.html) using Download raw file, then open it in a browser. No dependencies need to be installed.
 
 [简体中文](README.md) · **English**
 
@@ -6,12 +12,12 @@
 
 A single-file HTML tool for viewing and analyzing your personal data exported from Claude.ai. Double-click to use — no server, no network, no account required. **Since v5.2, all dependencies are inlined into the single file, so it works fully offline with zero external requests.**
 
-🔗 **Live demo**: <https://claudeviewersite.crownleo.cn/>
-📥 **Download**: [latest release](https://github.com/crownleo/ClaudeViewer/releases/latest)　·　🗺️ [Roadmap](docs/ROADMAP.md)
+🔗 **Upstream demo (without these modifications)**: <https://claudeviewersite.crownleo.cn/>
+📥 **Upstream release**: [original author's version](https://github.com/crownleo/ClaudeViewer/releases/latest)　·　🗺️ [Upstream roadmap](docs/ROADMAP.md)
 
 <p align="center"><img src="assets/main.png" alt="Claude Data Viewer" width="640"></p>
 
-> The live demo also runs entirely in your browser and uploads nothing. For long-term use, [download the single file](https://github.com/crownleo/ClaudeViewer/releases/latest) and keep it offline.
+> The upstream demo processes data locally in your browser. To use these modifications, download this repository's HTML rather than an upstream release.
 
 ---
 
@@ -142,8 +148,8 @@ On the upload screen click **"📁 Pick export folder"** and select the folder f
 ### Export
 | Feature | Action | Output |
 |---|---|---|
-| Export current chat as Markdown | Detail page "↓ MD" | `.md` file with thinking blocks and attachments |
-| Export current chat as PDF | Detail page "↓ PDF" | New window → print → save as PDF (with formulas) |
+| Export current chat as Markdown | Detail page "↓ MD" | Full thinking, tool results and extracted attachment text; batch exports are also untruncated |
+| Export current chat as PDF | Detail page "↓ PDF" | Full thinking and formulas by default; optional tool records and attachment text → print/save |
 | Batch export all chats | List page "↓ Export All" | `.zip`, one MD file per conversation |
 | Export memory file | Memory tab "↓ Export" | `.md` file |
 | Export a whole archive | Archive library "↓ Export Set" | `.zip`, byte-for-byte faithful to the originals (new in v6.0) |
@@ -203,7 +209,7 @@ ClaudeViewer renders the **LaTeX text Claude writes in the message body**:
 
 - **Fully local**: all data is processed only in your browser, never sent to any server
 - **Zero external requests**: since v5.2, marked.js, JSZip, KaTeX and its fonts are all inlined into the single file — opening the page makes no request to any CDN or third party, and it works fully offline
-- **CSP enforcement** (new in v6.0): the page declares `default-src 'none'; connect-src 'none'`, so the **browser itself** guarantees this page cannot reach any server. Even if an external resource were introduced by accident, or a rendering bug were exploited, your conversations could not be sent anywhere. Side effect: Markdown images in conversation text that point at external sites no longer load — which was a tracking and leakage channel to begin with
+- **Sanitization and CSP**: the local version bundles DOMPurify for chat, memory and print HTML, falling back to plain text if sanitization is unavailable. CSP restricts resource loading and network connections; print documents additionally prohibit scripts. CSP does not replace content sanitization. External Markdown images are removed; ordinary external links open only when clicked
 - **No persistence by default**: unless you explicitly choose "save locally"
 - **IndexedDB cache**: if you save, data lives in this device's browser, readable only locally, clearable anytime
 - **localStorage**: favorites, tags, dark mode, cache preference, collapse-empty-chats preference, current archive id (no conversation content)
@@ -230,6 +236,7 @@ ClaudeViewer renders the **LaTeX text Claude writes in the message body**:
 
 - Vanilla HTML / CSS / JavaScript, no framework
 - [marked.js 9.1.6](https://marked.js.org/) — Markdown rendering (inlined)
+- [DOMPurify 3.4.16](https://github.com/cure53/DOMPurify) — Untrusted HTML sanitization (inlined, upstream license notice retained)
 - [JSZip 3.10.1](https://stuk.github.io/jszip/) — ZIP parsing & generation (inlined)
 - [KaTeX 0.16.9](https://katex.org/) — LaTeX rendering, fonts included (inlined)
 - Dependency inlining: third-party libs and KaTeX fonts are inlined into the single file via [`build/build.py`](build/build.py), zero CDN, fully offline; re-run the script to upgrade a dependency
@@ -360,6 +367,13 @@ You can also verify by hand: unzip the export, open `conversations.json` in a te
 ---
 
 ## 📋 Version History
+
+**v6.0.1-local** *(2026-10-04, local improvements)*
+
+- Shared safe Markdown rendering for chat, memory and PDF; scripts disabled in print documents and thinking summaries escaped.
+- Single and batch Markdown preserve full tool results and extracted attachment text. PDF preserves full thinking with optional tool and attachment bodies.
+- Fixed print-window load listener timing; expanded folded content and waited for fonts before printing.
+- Added browser regression tests; see [tests/README.md](tests/README.md). Missing source data cannot be recovered, and reading exports do not replace original backups.
 
 **v6.0** *(2026-09-08)*
 

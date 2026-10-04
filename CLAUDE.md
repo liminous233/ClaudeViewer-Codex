@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目性质
 
-ClaudeViewer 是一个**单文件**浏览器应用：`claude_viewer.html`（约 940 KB，含内联依赖）。没有构建系统、没有依赖管理器、没有测试框架。改代码 = 直接编辑这一个文件，改完在浏览器里刷新即可验证。
+ClaudeViewer 是一个**单文件**浏览器应用：`claude_viewer.html`（约 1 MB，含内联依赖）。用户无需安装依赖。改代码直接编辑该文件；本地版有仅用于开发的 Node.js / Playwright 测试，见 `tests/README.md`。
 
 产品底线（来自 `docs/ROADMAP.md`，任何新功能都必须遵守，违背者不做）：
 
@@ -29,7 +29,7 @@ python -m http.server 8000                  # 需要测试 File System Access AP
 python build/build.py
 ```
 
-没有 lint / test 命令。验证靠手动：导入 ZIP → 看对话（含 thinking / 工具调用 / LaTeX / 附件）→ 对话内搜索 → 全局搜索 → 统计页 → 导出 MD/PDF → 深色模式 → 移动端窄屏 → Claude Code 模式。
+本地版回归测试：`npm test`（需开发依赖和浏览器，见 `tests/README.md`）。按改动补充手动验证：导入 ZIP → 看对话（含 thinking / 工具调用 / LaTeX / 附件）→ 对话内搜索 → 全局搜索 → 统计页 → 导出 MD/PDF → 深色模式 → 移动端窄屏 → Claude Code 模式。
 
 ## 文件内部结构（按行区间）
 
@@ -56,7 +56,7 @@ JS 内部顺序：常量与 `DEMO_DATA` → STATE → IndexedDB → DOM 引用 �
 
 关键设计：`ccToConv()` 是**归一化适配器**，把 `projects/**/*.jsonl` 逐行记录转成与导出包同构的 conv 对象（`{uuid,name,created_at,chat_messages[{sender,content[]}],_cc:{…}}`），塞进 `ccConvCache`。因此 `openConv()`、渲染、导航条、对话内搜索、MD 导出全部零改动复用。**新增数据来源时照此模式做适配器，不要在渲染层加分支。**
 
-消息内容统一是 `content[]` 块数组，块类型：`text` / `thinking` / `tool_use` / `tool_result`，分别由 `buildMsg` 里的 `buildThinking` / `buildToolBlock` / `buildAttachment` 渲染。
+消息内容统一是 `content[]` 块数组，块类型：`text` / `thinking` / `tool_use` / `tool_result`，分别由 `buildMsg` 里的 `buildThinking` / `buildToolBlock` / `buildAttachment` 渲染。所有不可信 Markdown 必须走 `safeMarkdown()`（内联 DOMPurify、失败时纯文本）；不得直接将 `marked.parse()` 结果写入 DOM。打印用 `buildPrintHtml()`，动态文本须转义。
 
 ### 渲染：全渲染 / 虚拟滚动双模式
 

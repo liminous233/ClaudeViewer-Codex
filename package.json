@@ -1,0 +1,6 @@
+{
+  "name": "claudeviewer-local-checks",
+  "private": true,
+  "scripts": {"test": "node --test tests/viewer.test.cjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}
