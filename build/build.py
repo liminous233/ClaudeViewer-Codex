@@ -5,7 +5,7 @@
 用法：python3 build/build.py
 
 它做的事：
-1. 从 cdnjs 下载 JSZip / marked / KaTeX(JS+CSS) / auto-render（缓存到 build/vendor/）
+1. 从 cdnjs 下载 JSZip / marked / DOMPurify / KaTeX(JS+CSS) / auto-render（缓存到 build/vendor/）
 2. 解析 KaTeX CSS 里的 woff2 字体，逐个下载并转成 base64 内嵌进 CSS
 3. 把这些内容注入 claude_viewer.html 的 <!-- vendor:start --> ... <!-- vendor:end --> 区块
    （首次运行会替换掉原来的 4 个 cdnjs <script>/<link> 标签）
@@ -23,6 +23,7 @@ CDN = 'https://cdnjs.cloudflare.com/ajax/libs'
 LIBS = {
     'jszip':       f'{CDN}/jszip/3.10.1/jszip.min.js',
     'marked':      f'{CDN}/marked/9.1.6/marked.min.js',
+    'dompurify':   f'{CDN}/dompurify/3.4.16/purify.min.js',
     'katex-css':   f'{CDN}/KaTeX/0.16.9/katex.min.css',
     'katex-js':    f'{CDN}/KaTeX/0.16.9/katex.min.js',
     'auto-render': f'{CDN}/KaTeX/0.16.9/contrib/auto-render.min.js',
@@ -51,7 +52,7 @@ def safe_js(src):
 
 
 print('[1/3] 下载库文件…')
-raw = {k: cached(url.split('/')[-1], url) for k, url in LIBS.items()}
+raw = {k: cached(url[len(CDN)+1:].replace('/', '_'), url) for k, url in LIBS.items()}
 
 print('[2/3] 内联 KaTeX 字体（woff2 → base64）…')
 css = raw['katex-css'].decode('utf-8')
@@ -74,6 +75,7 @@ block = '\n'.join([
     '<!-- vendor:start — 本地内联依赖，零 CDN、离线可用（由 build/build.py 生成，勿手改此区块）-->',
     f'<script>/* JSZip 3.10.1 */{safe_js(raw["jszip"].decode("utf-8"))}</script>',
     f'<script>/* marked 9.1.6 */{safe_js(raw["marked"].decode("utf-8"))}</script>',
+    f'<script>/* DOMPurify 3.4.16 */{safe_js(raw["dompurify"].decode("utf-8"))}</script>',
     f'<style id="katex-css">/* KaTeX 0.16.9 */{css}</style>',
     f'<script>/* KaTeX 0.16.9 */{safe_js(raw["katex-js"].decode("utf-8"))}</script>',
     f'<script>/* KaTeX auto-render 0.16.9 */{safe_js(raw["auto-render"].decode("utf-8"))}</script>',
